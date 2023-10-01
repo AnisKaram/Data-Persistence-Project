@@ -7,6 +7,9 @@ using UnityEngine.UI;
 public class MenuUIManager : MonoBehaviour
 {
     #region Fields
+    [Header("GameObjects")]
+    [SerializeField] private GameObject _nameIsRequiredObject;
+
     [Header("Buttons")]
     [SerializeField] private Button _startButton;
 
@@ -41,6 +44,14 @@ public class MenuUIManager : MonoBehaviour
 
     private void EnterScene(int sceneIndex)
     {
+        Debug.Log($"Name length {_nameInputField.text.Length}");
+
+        if (IsNameInputFieldEmpty())
+        {
+            _nameIsRequiredObject.SetActive(true);
+            return;
+        }
+
         GameData.GameDataInstance.NameInput = _nameInputField.text;
         SceneManager.LoadSceneAsync(sceneIndex);
     }
@@ -52,6 +63,15 @@ public class MenuUIManager : MonoBehaviour
 
         _bestScoreText.text = $"Best Score: {bestScoreName} : {bestScoreValue}";
         _nameInputField.text = bestScoreName != null ? bestScoreName : null;
+    }
+
+    private bool IsNameInputFieldEmpty()
+    {
+        if (_nameInputField.text.Length > 0)
+        {
+            return false;
+        }
+        return true;
     }
     #endregion
 }

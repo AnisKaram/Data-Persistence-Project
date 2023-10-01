@@ -1,31 +1,35 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MainManager : MonoBehaviour
 {
+    #region Fields
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
 
     public Text ScoreText;
     public GameObject GameOverText;
-    
+
     private bool m_Started = false;
     private int m_Points;
-    
-    private bool m_GameOver = false;
 
-    
-    // Start is called before the first frame update
-    void Start()
+    private bool m_GameOver = false;
+    #endregion
+
+    #region Events
+    public static event UnityAction OnBestScoreChanged;
+    #endregion
+
+    #region Unity Methods
+    private void Start()
     {
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
-        int[] pointCountArray = new [] {1,1,2,2,5,5};
+
+        int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
         for (int i = 0; i < LineCount; ++i)
         {
             for (int x = 0; x < perLine; ++x)
@@ -61,16 +65,45 @@ public class MainManager : MonoBehaviour
             }
         }
     }
+    #endregion
 
-    void AddPoint(int point)
+    #region Public Methods
+    public void GameOver()
+    {
+        if (IsPreviousBestScoreGreaterThanCurrentScore())
+        {
+            ChangeBestScore();
+            GameData.GameDataInstance.SaveData();
+        }
+        
+        m_GameOver = true;
+        GameOverText.SetActive(true);
+    }
+    #endregion
+
+    #region Private Methods
+    private void AddPoint(int point)
     {
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
     }
 
-    public void GameOver()
+    private void ChangeBestScore()
     {
-        m_GameOver = true;
-        GameOverText.SetActive(true);
+        GameData.GameDataInstance.BestScore = m_Points;
+        GameData.GameDataInstance.NameToDisplay = GameData.GameDataInstance.NameInput;
+
+        OnBestScoreChanged?.Invoke();
     }
+
+    private bool IsPreviousBestScoreGreaterThanCurrentScore()
+    {
+        int previousBestScore = GameData.GameDataInstance.PreviousBestScore;
+        if (m_Points >= previousBestScore)
+        {
+            return true;
+        }
+        return false;
+    }
+    #endregion
 }
